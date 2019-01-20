@@ -1,7 +1,26 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jan 19 16:14:37 2019
+#Baylor Whitehead
+#funcs for pSupply RIGOL DP832
 
-@author: bwhitehe
-"""
+#ON/OFF
+def pSupplyOn(name):
+    name.write('OUTPut CH1, ON')
 
+def pSupplyOff(name):
+    name.write('OUTPut CH1, OFF')
+    
+def pSupplyState(name):
+    name.write('OUTPut? CH1')
+    
+#Voltage    
+def pSupplySetV(name, volt):   
+    name.write('SOURce1:VOLTage {0}'.format(volt))
+
+def pSupplyGetV(name):
+    return name.query("VOLT?")
+
+#Current
+def pSupplySetC(name, current):   
+    name.write('SOURce1:CURRent {0}'.format(current))
+
+def pSupplyGetC(name):
+    return name.query("CURR?")

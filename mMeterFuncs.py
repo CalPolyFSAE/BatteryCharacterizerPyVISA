@@ -1,7 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jan 19 16:51:18 2019
+#Baylor Whitehead
+#funcs for mMeter RIGOL DM3058E
 
-@author: bwhitehe
-"""
+#volt
+def mMeterGetV(name):
+    return name.query(":MEASure:VOLTage:DC?")
 
+#current
+def mMeterGetI(name):
+    return name.query(":MEASure:CURRent:DC?")
