@@ -19,8 +19,8 @@ def pSupplyGetV(name):
     return name.query("VOLT?")
 
 #Current
-def pSupplySetC(name, current):   
+def pSupplySetI(name, current):   
     name.write('SOURce1:CURRent {0}'.format(current))
 
-def pSupplyGetC(name):
+def pSupplyGetI(name):
     return name.query("CURR?")
