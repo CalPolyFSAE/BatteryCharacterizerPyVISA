@@ -13,53 +13,84 @@ import sys
 import time
 
 def charge(electronics, cycle, v, argv):
-    fVI, fR = makeChargeFiles(argv,cycle)
+    #setup files
+    print("BLAAAAAA")
+    fVI, fR = makeChargeFiles(argv,"C",cycle)
+    
     pSupplySetup(electronics[3])
     start_time = time.time()
-    
-    while(float(v) < 3.8): #charges until Volts hit max
+    #data collection loop until charged
+    while(float(v) < 3.8):
         v = dataCollection(electronics,0, start_time, fVI, fR)
-        
+    
+    #clean up    
     pSupplyOff(electronics[3])
     closeFiles(fVI,fR)
     
 def discharge(electronics, cycle, v, argv):
-    fVI, fR = makeChargeFiles(argv,cycle)
+    #setup files
+    print("FFFFFFFFFF")
+    fVI, fR = makeChargeFiles(argv,"D",cycle)
+    
     eLoadSetup(electronics[0]);
     start_time = time.time()
     
+    #data collection loop until discharged
     while(float(v) >= 3.5): #discharges until Volts hit low
         v = dataCollection(electronics,1, start_time, fVI, fR)
     
+    #clean up
     eLoadOff(electronics[0])
     cycle += 1
     closeFiles(fVI,fR)
 
 def dataCollection(electronics, cOrD,start_time, fVI, fR):
     time.sleep(1.0 - ((time.time() - start_time) % 1.0))
-    v, i = getVIData(electronics[1], electronics[2])
     time_now = time.time()-start_time
-    if(int(round(time_now))%10 == 0):
-        if(cOrD == 0):
-            cResist(electronics, fR)    
-        else:
-            dResist(electronics, fR)
-    else:
-        fVI.write(("{0:d},{1:.4f},{2:.4f}\n").format(int(time_now), float(v), float(i)))
     
+    if(int(round(time_now))%10 == 0): #checks resistance
+        if(cOrD == 0):
+            print("heell\n")
+            getCResist(electronics, fR, start_time)    
+        else:
+            print("LOL\n")
+            getDResist(electronics, fR, start_time)
+    else: #recods voltage and resistance
+        v, i = getVIData(electronics[1], electronics[2])
+        fVI.write(("{0:d},{1:.4f},{2:.4f}\n").format(int(time_now), float(v), float(i)))
+    v = mMeterGetV(electronics[1])
     return v
 
-def cResist(electronics, fR):
-    pSupplyOff(electronics[3])
-    fR.write(("{0:d},{2:.4f}").format(int(time_now), float(i)))
-    pSupplyOn(electronics[3])
-    fR.write(("{0:d},{2:.4f}").format(int(time_now), float(i)))
+def getCResist(electronics, fR, start_time):
+    #inital measure
+    v , i = getVIData(electronics[1], electronics[2])
+    time_now = time.time() - start_time
+    fR.write(("{0:d},{1:.4f}").format(int(time_now), float(i)))
     
-def dResist(electronics, fR):
+    #turn off foor one second then measure
+    pSupplyOff(electronics[3])
+    time.sleep(1)
+    v , i = getVIData(electronics[1], electronics[2])
+    fR.write(("{0:.4f},{1:.4f}").format(float(v),float(i)))
+    
+    #turn on and measure within one second
+    pSupplyOn(electronics[3])
+    v , i = getVIData(electronics[1], electronics[2])
+    fR.write(("{0:.4f},{1:.4f}\n").format(float(v),float(i)))
+    
+def getDResist(electronics, fR, start_time):
+    #discharging measure
+    v , i = getVIData(electronics[1], electronics[2])
+    time_now = time.time() - start_time
+    fR.write(("{0:d},{1:.4f}").format(int(time_now), float(i)))
+    #stop and measure
     eLoadOff(electronics[0])
-    fR.write(("{0:d},{2:.4f}").format(int(time_now), float(i)))
+    v , i = getVIData(electronics[1], electronics[2])
+    fR.write(("{0:.4f},{1:.4f}").format(float(v),float(i)))
+    #discharge an measure within 1 second
     eLoadOn(electronics[0])
-    fR.write(("{0:d},{2:.4f}").format(int(time_now), float(i)))
+    v , i = getVIData(electronics[1], electronics[2])
+    fR.write(("{0:.4f},{1:.4f}\n").format(float(v),float(i)))
 
 def allOff(eLoad, pSupply):
     eLoadOff(eLoad)

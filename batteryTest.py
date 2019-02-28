@@ -24,9 +24,9 @@ def setup():
     print(rm.list_resources())
     
     eLoad = rm.open_resource('GPIB0::1::INSTR')
-    mMeter1 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R193601853::INSTR')
-    mMeter2 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R191700643::INSTR')
-    pSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C192803275::INSTR')
+    mMeter1 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R193601840::INSTR')
+    mMeter2 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R193601844::INSTR')
+    pSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C193604507::INSTR')
     directory = "{}_Data".format(sys.argv[1])
     
     try:
