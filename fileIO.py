@@ -9,7 +9,7 @@ import sys
 def makeChargeFiles(argv,state,cycle):
     filepath =  "C:\\Users\\bwhitehe\\Desktop\\BatteryCharacterizerPyVISA-master\\{0}_Data\\{1}{2}.csv".format(sys.argv[1],state,cycle+1)
     fVI = open(filepath, "w")
-    fVI.write("Time,Volt,Current\n")
+    fVI.write("Time(s),Volt(v),Current(A)\n")
     filepath =  "C:\\Users\\bwhitehe\\Desktop\\BatteryCharacterizerPyVISA-master\\{0}_Data\\{1}R{2}.csv".format(sys.argv[1],state,cycle+1)
     fR = open(filepath, "w")
     fR.write("Time,Volt,Current,Volt,Current,Volt,Current\n")
