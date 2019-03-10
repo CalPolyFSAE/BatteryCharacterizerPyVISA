@@ -24,9 +24,9 @@ def setup():
     print(rm.list_resources())
     
     eLoad = rm.open_resource('GPIB0::1::INSTR')
-    mMeter1 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R193601840::INSTR')
-    mMeter2 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R193601844::INSTR')
-    pSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C193604507::INSTR')
+    mMeter1 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R193601826::INSTR')
+    mMeter2 = rm.open_resource('USB0::0x1AB1::0x09C4::DM3R193601855::INSTR')
+    pSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C192803246::INSTR')
     directory = "{}_Data".format(sys.argv[1])
     
     try:
@@ -41,22 +41,29 @@ def main():
     eLoad, mMeter1, mMeter2, pSupply = setup()
     electronics = [eLoad, mMeter1, mMeter2, pSupply]
     
+    #Try Except For Saftey, If Failure Then turns off
     #try:    
     cycle = 0
-    
+
+    #First discharge setup
+    #allOff(electronics[0],electronics[3])
+    #firstDischarge(electronics)
+
+    #Main Loop
     while(cycle < 1):
+        #All off For Saftey
         allOff(electronics[0],electronics[3])
-        time.sleep(1)
-        v = mMeterGetV(electronics[1])
-        print(v)
-        
-        if(float(v) < 3.67):  #if charge low then charge
+        v, i = getVIData(electronics[1], electronics[2])
+    
+        #Starts by charging, Then flips back and forth based on cycle num
+        if(float(v) < 3.1):  #if charge low then charge
             charge(electronics, cycle, v, sys.argv)
         else:                #else if votls high discharge
-            discharge(electronics, cycle, v, sys.argv)
+            cycle += discharge(electronics, cycle, v, sys.argv)
     #except:
         #print("failed")
         #allOff(electronics[0],electronics[3])
+        #print "Unexpected error:", sys.exc_info()[0]
 
 if __name__ == '__main__':
    main()
