@@ -27,7 +27,7 @@ def charge(electronics, cycle, v, argv):
     pSupplySetup(electronics[3])
     start_time = time.time()
     #data collection loop until charged
-    while(float(v) < 3.75):
+    while(float(v) < 4.1):
         v = dataCollection(electronics,0, start_time, fVI, fR)
     
     #clean up    
