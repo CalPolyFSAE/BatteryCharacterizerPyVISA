@@ -18,3 +18,12 @@ def makeChargeFiles(argv,state,cycle):
 def closeFile(fVI,fR):
     fVI.close()
     fR.close()
+    
+def openCloseFile(fVI,fR,argv,state,cycle):
+    fVI.close()
+    filepath =  "C:\\Users\\bwhitehe\\Desktop\\BatteryCharacterizerPyVISA-master\\{0}_Data\\{1}{2}.csv".format(sys.argv[1],state,cycle+1)
+    fVI = open(filepath, "a")
+    fR.close()
+    filepath =  "C:\\Users\\bwhitehe\\Desktop\\BatteryCharacterizerPyVISA-master\\{0}_Data\\{1}R{2}.csv".format(sys.argv[1],state,cycle+1)
+    fR = open(filepath, "a")
+    return fVI, fR
