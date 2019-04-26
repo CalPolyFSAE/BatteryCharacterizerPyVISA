@@ -1,13 +1,15 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 18 17:47:33 2019
+#PyVisa code to test battery characterizer
+#Note: this code is set up for the following devices
+#eload: Kikusui PLZ303w
+#pSupply: Rigol DP832
+#mMeter: Rigol DM3058E
 
-@author: bwhitehe
-"""
 from eLoadFuncs import *
 from pSupplyFuncs import *
 from mMeterFuncs import *
 from fileIO import *
+import testSettings
+
 from thermocouples_reference import thermocouples
 import visa
 import sys
@@ -37,6 +39,32 @@ def firstDischarge(electronics):
     #turns off eload    
     eLoadOff(electronics[0])
 
+
+def finalCharge(electronics):
+    print("----------------CHARGE-------------------")
+    #setting up psupply to charge to about 80% for storage
+    pSupplySetup(electronics[3])
+    v, i = getVIData(electronics[1], electronics[2])
+    
+    #data collection loop until charged
+    count = 0
+    start_time = time.time()
+    while(float(v) < testSettings.FINALVOLT):
+        #incriment counter, wait till end of second
+        count += 1
+        time.sleep(1.0 - ((time.time() - start_time) % 1.0))
+        v, i = getVIData(electronics[1], electronics[2])
+        
+        #when counter is 10 aka 10 seconds have passes check temp
+        if((count) %10  == 0):
+            checkTemp(electronics)
+            if(count % 1000000 == 0): #prevents overflow
+                count = 0
+    
+    #pSupply off and closes files
+    pSupplyOff(electronics[3])
+    
+    
 def charge(electronics, cycle, v, argv):
     print("----------------CHARGE-------------------")
     #setting up files and psupply
@@ -46,7 +74,7 @@ def charge(electronics, cycle, v, argv):
     count = 0
     #data collection loop until charged
     start_time = time.time()
-    while(float(v) < 4.1):
+    while(float(v) < testSettings.UPPERVOLTLIMIT):
         #incriment counter and Data Collection
         count += 1
         v = dataCollection(electronics,0, start_time, fVI, fR, count)
@@ -70,7 +98,7 @@ def discharge(electronics, cycle, v, argv):
     count = 0
     #data collection loop until discharged
     start_time = time.time()
-    while(float(v) >= 2.8): #discharges until Volts hit low
+    while(float(v) >= testSettings.LOWERVOLTLIMIT): #discharges until Volts hit low
         #incimrents counter and Data Collection
         count +=1
         v = dataCollection(electronics,1, start_time, fVI, fR,count)
@@ -145,12 +173,12 @@ def allOff(eLoad, pSupply): # turns off eload and psupply
     
 def eLoadSetup(eLoad): # sets up eload
     eLoadCCMode(eLoad)
-    eLoadSetI(eLoad, 3)
+    eLoadSetI(eLoad, testSettings.ELOADCURR)
     eLoadOn(eLoad)
 
 def pSupplySetup(pSupply): #sets up psupply
-    pSupplySetV(pSupply, 4.2)
-    pSupplySetI(pSupply, 1)
+    pSupplySetV(pSupply, testSettings.PSUPPLYVOLT)
+    pSupplySetI(pSupply, testSettings.PSUPPLYCURR)
     pSupplyOn(pSupply)
 
 def getVIData(mMeter1, mMeter2): #gets V/I data and prints/returns it
@@ -181,7 +209,7 @@ def checkTemp(electronics): # checks temp and if over limit then turns off psupp
         temp = typeK.inverse_CmV(float(v)*(1000), Tref=23) 
         print("TEMP: " + str(temp) + "\n")
     #checks if temp is to high
-    if(temp > 50):
+    if(temp > testSettings.MAXTEMP):
         allOff(electronics[0],electronics[3])
         print("O Shit this is fire")
         print("we burnin")
