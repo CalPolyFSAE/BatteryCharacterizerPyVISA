@@ -28,7 +28,12 @@ def firstDischarge(electronics):
         #incriment counter, wait till end of second, get data
         count += 1
         time.sleep(1.0 - ((time.time() - start_time) % 1.0))
-        v, i = getVIData(electronics[1], electronics[2])
+        if((count) % 20  == 0):
+            eLoadOff(electronics[0])
+            time.sleep(2)
+            v, i = getVIData(electronics[1], electronics[2])
+            time.sleep(1)
+            eLoadSetup(electronics[0])
         
         #when counter is 10 aka 10 seconds have passes check temp
         if((count) %10  == 0):
@@ -43,8 +48,8 @@ def firstDischarge(electronics):
 def finalCharge(electronics):
     print("----------------CHARGE-------------------")
     #setting up psupply to charge to about 80% for storage
-    pSupplySetup(electronics[3])
     v, i = getVIData(electronics[1], electronics[2])
+    pSupplySetup(electronics[3])
     
     #data collection loop until charged
     count = 0
@@ -53,7 +58,12 @@ def finalCharge(electronics):
         #incriment counter, wait till end of second
         count += 1
         time.sleep(1.0 - ((time.time() - start_time) % 1.0))
-        v, i = getVIData(electronics[1], electronics[2])
+        if((count) %30  == 0):
+            pSupplyOff(electronics[3])
+            time.sleep(2)
+            v, i = getVIData(electronics[1], electronics[2])
+            time.sleep(1)
+            pSupplySetup(electronics[3])
         
         #when counter is 10 aka 10 seconds have passes check temp
         if((count) %10  == 0):
@@ -77,9 +87,9 @@ def charge(electronics, cycle, v, argv):
     while(float(v) < testSettings.UPPERVOLTLIMIT):
         #incriment counter and Data Collection
         count += 1
-        v = dataCollection(electronics,0, start_time, fVI, fR, count)
+        v = dataCollection(electronics,0, start_time, fVI, fR, count, v)
         #every 10ish seconds opens and closes file to update it, and checks temp
-        if((count) %10  == 0):
+        if((count) %30  == 0):
             fVI,fR = openCloseFile(fVI, fR, argv,"C",cycle)
             checkTemp(electronics)
             if(count % 1000000 == 0): #prevents overflow
@@ -101,7 +111,8 @@ def discharge(electronics, cycle, v, argv):
     while(float(v) >= testSettings.LOWERVOLTLIMIT): #discharges until Volts hit low
         #incimrents counter and Data Collection
         count +=1
-        v = dataCollection(electronics,1, start_time, fVI, fR,count)
+        
+        v = dataCollection(electronics,1, start_time, fVI, fR,count, v)
         #every 10ish seconds opens and closes file to update it, and checks temp
         if((count) %10 == 0):
             fVI,fR = openCloseFile(fVI,fR, argv, "D", cycle)
@@ -114,20 +125,35 @@ def discharge(electronics, cycle, v, argv):
     closeFile(fVI,fR)
     return 1;
 
-def dataCollection(electronics, cOrD,start_time, fVI, fR,count):
+def dataCollection(electronics, cOrD,start_time, fVI, fR,count, v):
     #sleeps till end of next second marker so that data is collected at second marks
     time.sleep(1.0 - ((time.time() - start_time) % 1.0))
+    
     #gets data
-    v, i = getVIData(electronics[1], electronics[2])
     time_now = time.time()-start_time #gets current time
-    if(count %30 == 0): #every 30 data collections it will do a resistance calculation
+    if(count % 30 == 0):
+        if(cOrD == 0):
+            pSupplyOff(electronics[3])
+            time.sleep(2)
+            v, i = getVIData(electronics[1], electronics[2])
+            time.sleep(1)
+            pSupplySetup(electronics[3])
+            fVI.write(("{0:d},{1:.4f},{2:.4f}\n").format(int(time_now), float(v), float(i)))
+        else:
+            eLoadOff(electronics[0])
+            time.sleep(2)
+            v, i = getVIData(electronics[1], electronics[2])
+            time.sleep(1)
+            eLoadSetup(electronics[0])
+            fVI.write(("{0:d},{1:.4f},{2:.4f}\n").format(int(time_now), float(v), float(i)))
+            
+    if(count %55 == 0): #every 30 data collections it will do a resistance calculation
         if(cOrD == 0):
             getCResist(electronics, fR, start_time)    
         else:
             getDResist(electronics, fR, start_time)
         return v
-    #writes data to VI file
-    fVI.write(("{0:d},{1:.4f},{2:.4f}\n").format(int(time_now), float(v), float(i)))
+    
     return v
 
 def getCResist(electronics, fR, start_time):

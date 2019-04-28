@@ -58,7 +58,7 @@ def main():
     
         #Main Loop
         chargeState = True;
-        while(testSettings.cycleNum < 1):
+        while(cycle < testSettings.CYCLENUM):
             #All off For Saftey
             allOff(electronics[0],electronics[3])
             
@@ -66,7 +66,7 @@ def main():
             v, i = getVIData(electronics[1], electronics[2])
             checkTemp(electronics)
             #Starts by charging, Then flips back and forth based on charge
-            if(chargeState = true):  #if volts low then charge
+            if(chargeState == True):  #if volts low then charge
                 charge(electronics, cycle, v, sys.argv)
                 chargeState = False
             else:                #else if volts high discharge
