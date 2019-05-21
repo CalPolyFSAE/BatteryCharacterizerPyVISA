@@ -8,3 +8,7 @@ def mMeterGetV(name):
 #current
 def mMeterGetI(name):
     return name.query(":MEASure:CURRent:DC?")
+
+#current
+def mMeterGetR(name):
+    return name.query(":MEASure:RESistance?")
